@@ -1,0 +1,52 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "dependencies": {
+    "@zeit/next-css": "^1.0.1",
+    "@zeit/next-sass": "^1.0.1",
+    "dotenv": "^8.2.0",
+    "express-session": "^1.17.0",
+    "formik": "^2.0.3",
+    "memorystore": "^1.6.1",
+    "nedb": "^1.8.0",
+    "next": "latest",
+    "next-auth": "^1.12.1",
+    "next-compose-plugins": "^2.2.0",
+    "next-fonts": "^0.19.0",
+    "next-optimized-images": "^2.5.3",
+    "next-transpile-modules": "^2.3.1",
+    "node-sass": "^4.13.0",
+    "nodemailer": "^6.3.1",
+    "nodemailer-direct-transport": "^3.3.2",
+    "nodemailer-smtp-transport": "^2.7.4",
+    "passport-facebook": "^3.0.0",
+    "passport-google-oauth": "^2.0.0",
+    "passport-twitter": "^1.0.4",
+    "prisma-client-lib": "^1.34.10",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "sass-loader": "^8.0.0",
+    "styled-components": "^4.0.0",
+    "universal-cookie": "^4.0.2",
+    "yup": "^0.27.0"
+  },
+  "devDependencies": {
+    "babel-plugin-styled-components": "^1.8.0",
+    "cross-env": "^6.0.3",
+    "nodemon": "^1.19.4"
+  },
+  "optionalDependencies": {
+    "fsevents": "*"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development PORT=3000 nodemon index.js",
+    "build": "next build",
+    "start": "node index.js",
+    "postinstall": "next build",
+    "prisma-deploy": "npx prisma deploy -e .env && npx prisma generate -e .env",
+    "prisma-token": "npx prisma token -e .env"
+  },
+  "engines": {
+    "node": "10.x"
+  }
+}

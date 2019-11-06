@@ -1,0 +1,222 @@
+type Conversation {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    updatedAt: DateTime! @updatedAt
+
+    title: String
+    creator: User! @relation(name: "ConversationCreatorRel")
+    participants: [ConversationParticipant!]! @relation(name: "ConversationToConvPartRel")
+    conversationType: ConversationType!
+
+    messages: [Message!]! @relation(name: "ConversationMessagesRel")
+}
+
+type ConversationParticipant {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    updatedAt: DateTime! @updatedAt
+
+    user: User! @relation(name: "UserToConversationRel")
+    conversation: Conversation! @relation(name: "ConversationToConvPartRel")
+    role: ConversationParticipantRole! @default(value: MEMBER)
+}
+
+enum ConversationParticipantRole {
+    MEMBER
+    ADMIN
+}
+
+enum ConversationType {
+    SINGLE
+    GROUP
+}
+
+type Message {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    updatedAt: DateTime! @updatedAt
+
+    conversation: Conversation! @relation(name: "ConversationMessagesRel")
+    sender: User!
+    messageType: MessageType! @default(value: TEXT)
+    message: String!
+    attachmentThumbUrl: String
+    attachmentUrl: String
+
+    isDeleted: Boolean! @default(value: false)
+}
+
+enum MessageType {
+    TEXT
+    IMAGE
+    VIDEO
+    AUDIO
+    FILE
+}
+
+type BlockList {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    updatedAt: DateTime! @updatedAt
+
+    user: User! @relation(name: "BlockListUserRel")
+    blockedUser: User! @relation(name: "BlockListBlockedUserRel")
+}
+
+type Brand {
+  id: ID! @id
+  name: String!
+  category: Category!
+  shop: Shop!
+}
+
+type Category {
+  id: ID! @id
+  name: String!
+  options: [Option!]!
+  shop: Shop!
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+}
+
+type Attribute {
+  id: ID! @id
+  value: String!
+  category: Category!
+  shop: Shop!
+  products: [Product!]!
+}
+
+type Option {
+  id: ID! @id
+  name: String!
+  values: [OptionValue!]! @relation(name: "OptionOptionValues", onDelete: CASCADE)
+  category: Category!
+  shop: Shop!
+}
+
+type OptionValue {
+  id: ID! @id
+  name: String!
+}
+
+type SelectedOption {
+  id: ID! @id
+  deletedAt: DateTime # For soft-deletion
+  option: Option!
+  variant: Variant! @relation(name: "VariantOnSelectedOptions")
+  value: OptionValue!
+} 
+
+type Variant {
+  id: ID! @id
+  deletedAt: DateTime # For soft-deletion
+  selectedOptions: [SelectedOption!]! @relation(name: "VariantOnSelectedOptions", onDelete: CASCADE)
+  price: Float!
+  available: Boolean!
+  product: Product @relation(name: "ProductVariants") # Variants can be disconnected from product when soft-deleted
+}
+
+type Product {
+  id: ID! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  deletedAt: DateTime # For soft-deletion
+  shop: Shop!
+  name: String!
+  description: String
+  brand: Brand!
+  SKU: String
+  category: Category!
+  options: [Option!]!
+  unavailableOptionsValues: [OptionValue!]!
+  variants: [Variant!]! @relation(name: "ProductVariants" onDelete: CASCADE)
+  attributes: [Attribute!]!
+  displayPrice: Float!
+  available: Boolean!
+  imageUrl: String
+  orderables: [OrderableProduct!]! @relation(name: "OrderableProducts", onDelete: CASCADE)
+}
+
+
+type Order {
+  id: ID! @id
+  createdAt: DateTime! @createdAt
+  updatedAt: DateTime! @updatedAt
+  owner: User! @relation(name: "UserOrders")
+  receiver: Shop!
+  lineItems: [OrderLineItem!]! @relation(name: "OrderLineItems" onDelete: CASCADE)
+  totalPrice: Float!
+  totalRefunded: Float!
+  totalTax: Float!
+  orderStatus: OrderStatus!
+}
+
+type OrderLineItem {
+  id: ID! @id
+  deletedAt: DateTime
+  quantity: Int!
+  variant: Variant
+  owner: User @relation(name: "UserCart", onDelete: SET_NULL)
+  shop: Shop!
+}
+
+type Shop {
+  id: ID! @id
+  name: String!
+  address: String!
+  zipCode: String!
+  city: String!
+  phoneNumber: String!
+  openingHours: String!
+  MOTD: String
+  products: [Product!]!
+  newProducts: [OrderableProduct!]! @relation(name: "NewProducts")
+  bestSellerProducts: [OrderableProduct!]! @relation(name: "BestSellerProducts")
+}
+
+type OrderableProduct {
+  id: ID! @id
+  product: Product! @relation(name: "OrderableProducts")
+  position: Int!
+  shopBestSeller: Shop @relation(name: "BestSellerProducts")
+  shopNewProduct: Shop @relation(name: "NewProducts")
+}
+
+# SUBMITTED = Order created but not yet paid
+# PAID = Order created and successfully paid.
+# PREPARED = Order created, subccesfully paid, and prepared by the store.
+enum OrderStatus {
+  SUBMITTED
+  PAID
+  PREPARED,
+  FAILED
+}
+
+type User {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    updatedAt: DateTime! @updatedAt
+    selectedShop: Shop
+    email: String! @unique
+    firstName: String
+    emailVerified: Boolean
+    emailToken: String @unique
+    lastName: String
+    phone: String
+    roles: [UserRole!]! @scalarList(strategy: RELATION)
+    avatar: String
+    last_login_date: DateTime
+    conversations: [ConversationParticipant!]! @relation(name: "UserToConversationRel")
+    contacts: [User!]!
+    cart: [OrderLineItem!]! @relation(name: "UserCart" onDelete: CASCADE)
+    orders: [Order!]! @relation(name: "UserOrders")
+    stripeCustomerId: String
+    oneSignalUserId: String
+}
+
+enum UserRole {
+    USER
+    MODERATOR
+    ADMIN
+}
